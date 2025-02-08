@@ -1,0 +1,704 @@
+{
+  "nodes": {
+    "model.example.raw_customers": {
+      "name": "raw_customers",
+      "schema": "raw",
+      "database": "analytics",
+      "description": "Raw customer data from source system",
+      "meta": {
+        "layer": "raw"
+      },
+      "columns": {
+        "customer_id": {
+          "name": "customer_id",
+          "description": "Customer ID from source",
+          "data_type": "varchar"
+        },
+        "email": {
+          "name": "email",
+          "data_type": "varchar"
+        },
+        "name": {
+          "name": "name",
+          "data_type": "varchar"
+        },
+        "address": {
+          "name": "address",
+          "data_type": "varchar"
+        }
+      }
+    },
+    "model.example.raw_orders": {
+      "name": "raw_orders",
+      "schema": "raw",
+      "database": "analytics",
+      "description": "Raw order data from source system",
+      "meta": {
+        "layer": "raw"
+      },
+      "columns": {
+        "order_id": {
+          "name": "order_id",
+          "data_type": "varchar"
+        },
+        "customer_id": {
+          "name": "customer_id",
+          "data_type": "varchar"
+        },
+        "order_date": {
+          "name": "order_date",
+          "data_type": "timestamp"
+        },
+        "status": {
+          "name": "status",
+          "data_type": "varchar"
+        }
+      }
+    },
+    "model.example.raw_products": {
+      "name": "raw_products",
+      "schema": "raw",
+      "database": "analytics",
+      "description": "Raw product data from source system",
+      "meta": {
+        "layer": "raw"
+      },
+      "columns": {
+        "product_id": {
+          "name": "product_id",
+          "data_type": "varchar"
+        },
+        "name": {
+          "name": "name",
+          "data_type": "varchar"
+        },
+        "category": {
+          "name": "category",
+          "data_type": "varchar"
+        },
+        "price": {
+          "name": "price",
+          "data_type": "decimal"
+        }
+      }
+    },
+    "model.example.stg_customers": {
+      "name": "stg_customers",
+      "schema": "staging",
+      "database": "analytics",
+      "description": "Staged customer data with basic transformations",
+      "meta": {
+        "layer": "staging"
+      },
+      "columns": {
+        "customer_id": {
+          "name": "customer_id",
+          "data_type": "varchar",
+          "meta": {
+            "is_key": true
+          }
+        },
+        "email": {
+          "name": "email",
+          "data_type": "varchar"
+        },
+        "full_name": {
+          "name": "full_name",
+          "data_type": "varchar"
+        },
+        "address": {
+          "name": "address",
+          "data_type": "varchar"
+        }
+      },
+      "tests": [
+        {
+          "test_metadata": {
+            "name": "relationships",
+            "kwargs": {
+              "to": "ref('raw_customers')",
+              "field": "customer_id"
+            }
+          },
+          "column_name": "customer_id"
+        }
+      ]
+    },
+    "model.example.hub_customer": {
+      "name": "hub_customer",
+      "schema": "dv_core",
+      "database": "analytics",
+      "description": "Customer hub containing unique customer identifiers",
+      "meta": {
+        "layer": "core",
+        "dv_type": "hub"
+      },
+      "columns": {
+        "customer_hk": {
+          "name": "customer_hk",
+          "description": "Hashed key for customer",
+          "data_type": "varchar",
+          "meta": {
+            "is_key": true
+          }
+        },
+        "customer_bk": {
+          "name": "customer_bk",
+          "description": "Business key from source",
+          "data_type": "varchar"
+        },
+        "load_date": {
+          "name": "load_date",
+          "data_type": "timestamp"
+        },
+        "record_source": {
+          "name": "record_source",
+          "data_type": "varchar"
+        }
+      },
+      "tests": [
+        {
+          "test_metadata": {
+            "name": "relationships",
+            "kwargs": {
+              "to": "ref('stg_customers')",
+              "field": "customer_id"
+            }
+          },
+          "column_name": "customer_bk"
+        }
+      ]
+    },
+    "model.example.sat_customer_details": {
+      "name": "sat_customer_details",
+      "schema": "dv_core",
+      "database": "analytics",
+      "description": "Customer satellite containing customer attributes",
+      "meta": {
+        "layer": "core",
+        "dv_type": "satellite"
+      },
+      "columns": {
+        "customer_hk": {
+          "name": "customer_hk",
+          "description": "Hashed key for customer",
+          "data_type": "varchar",
+          "meta": {
+            "is_key": true
+          }
+        },
+        "load_date": {
+          "name": "load_date",
+          "data_type": "timestamp"
+        },
+        "load_end_date": {
+          "name": "load_end_date",
+          "data_type": "timestamp"
+        },
+        "email": {
+          "name": "email",
+          "data_type": "varchar"
+        },
+        "full_name": {
+          "name": "full_name",
+          "data_type": "varchar"
+        },
+        "address": {
+          "name": "address",
+          "data_type": "varchar"
+        },
+        "record_source": {
+          "name": "record_source",
+          "data_type": "varchar"
+        }
+      },
+      "tests": [
+        {
+          "test_metadata": {
+            "name": "relationships",
+            "kwargs": {
+              "to": "ref('hub_customer')",
+              "field": "customer_hk"
+            }
+          },
+          "column_name": "customer_hk"
+        }
+      ]
+    },
+    "model.example.hub_product": {
+      "name": "hub_product",
+      "schema": "dv_core",
+      "database": "analytics",
+      "description": "Product hub containing unique product identifiers",
+      "meta": {
+        "layer": "core",
+        "dv_type": "hub"
+      },
+      "columns": {
+        "product_hk": {
+          "name": "product_hk",
+          "description": "Hashed key for product",
+          "data_type": "varchar",
+          "meta": {
+            "is_key": true
+          }
+        },
+        "product_bk": {
+          "name": "product_bk",
+          "description": "Business key from source",
+          "data_type": "varchar"
+        },
+        "load_date": {
+          "name": "load_date",
+          "data_type": "timestamp"
+        },
+        "record_source": {
+          "name": "record_source",
+          "data_type": "varchar"
+        }
+      }
+    },
+    "model.example.link_order": {
+      "name": "link_order",
+      "schema": "dv_core",
+      "database": "analytics",
+      "description": "Order link connecting customers and products",
+      "meta": {
+        "layer": "core",
+        "dv_type": "link"
+      },
+      "columns": {
+        "order_hk": {
+          "name": "order_hk",
+          "description": "Hashed key for order",
+          "data_type": "varchar",
+          "meta": {
+            "is_key": true
+          }
+        },
+        "customer_hk": {
+          "name": "customer_hk",
+          "description": "Hashed key for customer",
+          "data_type": "varchar"
+        },
+        "product_hk": {
+          "name": "product_hk",
+          "description": "Hashed key for product",
+          "data_type": "varchar"
+        },
+        "load_date": {
+          "name": "load_date",
+          "data_type": "timestamp"
+        },
+        "record_source": {
+          "name": "record_source",
+          "data_type": "varchar"
+        }
+      },
+      "tests": [
+        {
+          "test_metadata": {
+            "name": "relationships",
+            "kwargs": {
+              "to": "ref('hub_customer')",
+              "field": "customer_hk"
+            }
+          },
+          "column_name": "customer_hk"
+        },
+        {
+          "test_metadata": {
+            "name": "relationships",
+            "kwargs": {
+              "to": "ref('hub_product')",
+              "field": "product_hk"
+            }
+          },
+          "column_name": "product_hk"
+        }
+      ]
+    },
+    "model.example.sat_order_details": {
+      "name": "sat_order_details",
+      "schema": "dv_core",
+      "database": "analytics",
+      "description": "Order satellite containing order attributes",
+      "meta": {
+        "layer": "core",
+        "dv_type": "satellite"
+      },
+      "columns": {
+        "order_hk": {
+          "name": "order_hk",
+          "description": "Hashed key for order",
+          "data_type": "varchar",
+          "meta": {
+            "is_key": true
+          }
+        },
+        "order_date": {
+          "name": "order_date",
+          "data_type": "timestamp"
+        },
+        "status": {
+          "name": "status",
+          "data_type": "varchar"
+        },
+        "load_date": {
+          "name": "load_date",
+          "data_type": "timestamp"
+        },
+        "load_end_date": {
+          "name": "load_end_date",
+          "data_type": "timestamp"
+        },
+        "record_source": {
+          "name": "record_source",
+          "data_type": "varchar"
+        }
+      },
+      "tests": [
+        {
+          "test_metadata": {
+            "name": "relationships",
+            "kwargs": {
+              "to": "ref('link_order')",
+              "field": "order_hk"
+            }
+          },
+          "column_name": "order_hk"
+        }
+      ]
+    },
+    "model.example.dim_customer": {
+      "name": "dim_customer",
+      "schema": "mart",
+      "database": "analytics",
+      "description": "Customer dimension with current attributes and history",
+      "meta": {
+        "layer": "mart"
+      },
+      "columns": {
+        "customer_key": {
+          "name": "customer_key",
+          "description": "Surrogate key",
+          "data_type": "varchar",
+          "meta": {
+            "is_key": true
+          }
+        },
+        "customer_id": {
+          "name": "customer_id",
+          "description": "Business key",
+          "data_type": "varchar"
+        },
+        "email": {
+          "name": "email",
+          "data_type": "varchar"
+        },
+        "full_name": {
+          "name": "full_name",
+          "data_type": "varchar"
+        },
+        "address": {
+          "name": "address",
+          "data_type": "varchar"
+        },
+        "valid_from": {
+          "name": "valid_from",
+          "description": "Start date of the customer record",
+          "data_type": "timestamp"
+        },
+        "valid_to": {
+          "name": "valid_to",
+          "description": "End date of the customer record",
+          "data_type": "timestamp"
+        },
+        "is_current": {
+          "name": "is_current",
+          "description": "Flag indicating if this is the current record",
+          "data_type": "boolean"
+        }
+      },
+      "tests": [
+        {
+          "test_metadata": {
+            "name": "relationships",
+            "kwargs": {
+              "to": "ref('hub_customer')",
+              "field": "customer_hk"
+            }
+          },
+          "column_name": "customer_key"
+        }
+      ]
+    },
+    "model.example.dim_product": {
+      "name": "dim_product",
+      "schema": "mart",
+      "database": "analytics",
+      "description": "Product dimension with categories and attributes",
+      "meta": {
+        "layer": "mart"
+      },
+      "columns": {
+        "product_key": {
+          "name": "product_key",
+          "description": "Surrogate key",
+          "data_type": "varchar",
+          "meta": {
+            "is_key": true
+          }
+        },
+        "product_id": {
+          "name": "product_id",
+          "description": "Business key",
+          "data_type": "varchar"
+        },
+        "product_name": {
+          "name": "product_name",
+          "data_type": "varchar"
+        },
+        "category": {
+          "name": "category",
+          "data_type": "varchar"
+        },
+        "subcategory": {
+          "name": "subcategory",
+          "data_type": "varchar"
+        },
+        "price": {
+          "name": "price",
+          "data_type": "decimal"
+        },
+        "cost": {
+          "name": "cost",
+          "data_type": "decimal"
+        },
+        "valid_from": {
+          "name": "valid_from",
+          "data_type": "timestamp"
+        },
+        "valid_to": {
+          "name": "valid_to",
+          "data_type": "timestamp"
+        },
+        "is_current": {
+          "name": "is_current",
+          "data_type": "boolean"
+        }
+      }
+    },
+    "model.example.dim_date": {
+      "name": "dim_date",
+      "schema": "mart",
+      "database": "analytics",
+      "description": "Date dimension with calendar attributes",
+      "meta": {
+        "layer": "mart"
+      },
+      "columns": {
+        "date_key": {
+          "name": "date_key",
+          "description": "Date in YYYYMMDD format",
+          "data_type": "integer",
+          "meta": {
+            "is_key": true
+          }
+        },
+        "date": {
+          "name": "date",
+          "description": "Full date",
+          "data_type": "date"
+        },
+        "year": {
+          "name": "year",
+          "data_type": "integer"
+        },
+        "quarter": {
+          "name": "quarter",
+          "data_type": "integer"
+        },
+        "month": {
+          "name": "month",
+          "data_type": "integer"
+        },
+        "month_name": {
+          "name": "month_name",
+          "data_type": "varchar"
+        },
+        "day_of_month": {
+          "name": "day_of_month",
+          "data_type": "integer"
+        },
+        "day_of_week": {
+          "name": "day_of_week",
+          "data_type": "integer"
+        },
+        "day_name": {
+          "name": "day_name",
+          "data_type": "varchar"
+        },
+        "is_weekend": {
+          "name": "is_weekend",
+          "data_type": "boolean"
+        },
+        "is_holiday": {
+          "name": "is_holiday",
+          "data_type": "boolean"
+        }
+      }
+    },
+    "model.example.fct_orders": {
+      "name": "fct_orders",
+      "schema": "mart",
+      "database": "analytics",
+      "description": "Order fact table with line items",
+      "meta": {
+        "layer": "mart"
+      },
+      "columns": {
+        "order_key": {
+          "name": "order_key",
+          "description": "Surrogate key",
+          "data_type": "varchar",
+          "meta": {
+            "is_key": true
+          }
+        },
+        "order_date_key": {
+          "name": "order_date_key",
+          "description": "Foreign key to dim_date",
+          "data_type": "integer",
+          "meta": {
+            "is_foreign_key": true,
+            "references": "mart.dim_date",
+            "references_field": "date_key"
+          }
+        },
+        "customer_key": {
+          "name": "customer_key",
+          "data_type": "varchar",
+          "meta": {
+            "is_foreign_key": true,
+            "references": "mart.dim_customer",
+            "references_field": "customer_key"
+          }
+        },
+        "product_key": {
+          "name": "product_key",
+          "data_type": "varchar",
+          "meta": {
+            "is_foreign_key": true,
+            "references": "mart.dim_product",
+            "references_field": "product_key"
+          }
+        },
+        "order_id": {
+          "name": "order_id",
+          "description": "Business key",
+          "data_type": "varchar"
+        },
+        "quantity": {
+          "name": "quantity",
+          "data_type": "integer"
+        },
+        "unit_price": {
+          "name": "unit_price",
+          "data_type": "decimal"
+        },
+        "total_amount": {
+          "name": "total_amount",
+          "data_type": "decimal"
+        },
+        "discount_amount": {
+          "name": "discount_amount",
+          "data_type": "decimal"
+        },
+        "net_amount": {
+          "name": "net_amount",
+          "data_type": "decimal"
+        }
+      }
+    },
+    "model.example.fct_inventory": {
+      "name": "fct_inventory",
+      "schema": "mart",
+      "database": "analytics",
+      "description": "Daily inventory snapshot fact table",
+      "meta": {
+        "layer": "mart"
+      },
+      "columns": {
+        "inventory_key": {
+          "name": "inventory_key",
+          "description": "Surrogate key",
+          "data_type": "varchar",
+          "meta": {
+            "is_key": true
+          }
+        },
+        "date_key": {
+          "name": "date_key",
+          "description": "Foreign key to dim_date",
+          "data_type": "integer",
+          "meta": {
+            "is_foreign_key": true,
+            "references": "mart.dim_date",
+            "references_field": "date_key"
+          }
+        },
+        "product_key": {
+          "name": "product_key",
+          "data_type": "varchar",
+          "meta": {
+            "is_foreign_key": true,
+            "references": "mart.dim_product",
+            "references_field": "product_key"
+          }
+        },
+        "quantity_on_hand": {
+          "name": "quantity_on_hand",
+          "data_type": "integer"
+        },
+        "quantity_reserved": {
+          "name": "quantity_reserved",
+          "data_type": "integer"
+        },
+        "quantity_available": {
+          "name": "quantity_available",
+          "data_type": "integer"
+        },
+        "stock_value": {
+          "name": "stock_value",
+          "data_type": "decimal"
+        }
+      }
+    }
+  },
+  "parent_map": {
+    "model.example.stg_customers": ["model.example.raw_customers"],
+    "model.example.hub_customer": ["model.example.stg_customers"],
+    "model.example.sat_customer_details": ["model.example.hub_customer"],
+    "model.example.link_order": ["model.example.hub_customer", "model.example.hub_product"],
+    "model.example.sat_order_details": ["model.example.link_order"],
+    "model.example.dim_customer": ["model.example.hub_customer", "model.example.sat_customer_details"],
+    "model.example.dim_product": ["model.example.hub_product"],
+    "model.example.dim_date": ["model.example.fct_orders"],
+    "model.example.fct_orders": ["model.example.dim_customer", "model.example.dim_product", "model.example.dim_date", "model.example.link_order", "model.example.sat_order_details"],
+    "model.example.fct_inventory": ["model.example.dim_product", "model.example.dim_date"]
+  },
+  "child_map": {
+    "model.example.raw_customers": ["model.example.stg_customers"],
+    "model.example.stg_customers": ["model.example.hub_customer"],
+    "model.example.hub_customer": ["model.example.sat_customer_details", "model.example.link_order", "model.example.dim_customer"],
+    "model.example.hub_product": ["model.example.dim_product"],
+    "model.example.link_order": ["model.example.sat_order_details", "model.example.fct_orders"],
+    "model.example.sat_customer_details": ["model.example.dim_customer"],
+    "model.example.sat_order_details": ["model.example.fct_orders"],
+    "model.example.dim_customer": ["model.example.fct_orders"],
+    "model.example.dim_product": ["model.example.fct_orders", "model.example.fct_inventory"],
+    "model.example.dim_date": ["model.example.fct_orders", "model.example.fct_inventory"],
+    "model.example.fct_inventory": ["model.example.fct_orders"]
+  }
+} 
